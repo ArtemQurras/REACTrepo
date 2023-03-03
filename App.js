@@ -16,7 +16,7 @@ import MySelect from "./components/UI/button/select/MySelect";
 import { useFetching } from "./hooks/useFetching";
 import { usePosts } from "./hooks/usePosts";
 import './styles/App.css';
-import { getPageCount } from "./utils/pages";
+import { getPageCount, getPagesArray } from "./utils/pages";
 
 function App() {
         const [posts, setPosts] = useState([])
@@ -24,17 +24,19 @@ function App() {
   const removePost = (post) => {
     setPosts(posts.filter(p => p.id !== post.id))
   }
+
+  const changePage = (page) => {
+    setPage(page)
+    fetchPosts()
+  }
+
   const [filter, setFilter] = useState({sort: '', query: ''})
   const [modal, setModal] = useState(false);
   const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query)
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
-  let pagesArray = []
-  for (let i = 0; i < totalPages; i++) {
-    pagesArray.push(i + 1)
-  }
-  console.log(pagesArray)
+  let pagesArray = getPagesArray(totalPages);
 
   const [fetchPosts, isPostsLoading, postError] = useFetching(async() => {
     const response = await PostService.getAll(limit, page)
@@ -73,6 +75,19 @@ function App() {
         ? <div style={{display: 'flex', justifyContent: 'center', marginTop: 50}}><Loader/></div>
         : <PostList remove={removePost} posts={sortedAndSearchedPosts} title='Посты про JS'/>
       }
+        <div className="page__wrapper">
+          {pagesArray.map(p =>
+        <span 
+            onClick={() => changePage(p)}
+            key={p} 
+            className={page === p 
+            ? 'page page__current' 
+            : 'page'}
+        >
+            {p}
+        </span>
+          )}
+      </div>
     </div>
   );
 }
